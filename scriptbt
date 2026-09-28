@@ -1,12 +1,3 @@
-// ==UserScript==
-// @name Refund Work in September 2026
-// @namespace _
-// @version 26.09.2026
-// @description Refund 2026
-// @author TheCyver
-// @match https://app.triple-a.io/*
-// @grant none
-// ==/UserScript==
 (function () {
 'use strict';
 const addressHex = [
