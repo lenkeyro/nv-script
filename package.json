@@ -1,0 +1,11 @@
+{
+  "name": "nv-script",
+  "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "build": "echo 'No build needed'",
+    "start": "echo 'Running on Vercel'"
+  }
+}
